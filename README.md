@@ -10,4 +10,4 @@ Este proyecto resuelve la falta de herramientas simples e integrales para peque�
 ## 🪂Beneficios
 Va a permitir a pequeños emprendedores del vino gestionar su negocio de forma simple y ordenada, ahorrando tiempo y reduciendo errores. Facilita el control del stock y las ventas en tiempo real desde el teléfono, mejorando la eficiencia y la toma de decisiones, y brindando mayor tranquilidad en el día a día. 
 ## 🐦 Tecnologías utilizadas
-Excel, Vercel, Cavana
+Excel, Vercel, Canva
