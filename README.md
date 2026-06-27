@@ -76,3 +76,5 @@ Cuando un cliente solicita dejar el pedido en cuenta corriente o realiza un pago
 2. La App escanea la tabla `Movimientos` filtrando por el `ID_Cliente` y realiza una suma algebraica de la columna `Total_Transaccion`.
 3. **Acción de Alerta:** Si el cliente solicita mercadería en cuenta corriente y el saldo acumulado supera su `Limite_Credito`, la aplicación del celular muestra una advertencia en pantalla, indicando al vendedor que debe exigir un pago antes de bajar más botellas.
 4. **Registro de Cobro:** Si el cliente paga, el vendedor registra un movimiento de tipo "Abono a Deuda" con valor negativo, actualizando el saldo deudor de forma inmediata.
+
+## santiagos-app-ph9g
