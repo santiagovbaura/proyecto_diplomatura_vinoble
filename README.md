@@ -15,8 +15,10 @@ Este proyecto resuelve la falta de herramientas simples e integrales para peque�
 Va a permitir a pequeños emprendedores del vino gestionar su negocio de forma simple y ordenada, ahorrando tiempo y reduciendo errores. Facilita el control del stock y las ventas en tiempo real desde el teléfono, mejorando la eficiencia y la toma de decisiones, y brindando mayor tranquilidad en el día a día. 
 
 ## 🐦 Tecnologías utilizadas
-Excel, Vercel, Canva
-
+Excel: para hacer las tabalas
+Cnava: para diseñar la app
+GILDE: intente de todas formas, pero no podia evitar no pagar unas sucripcion anual
+VERCEL: es mi ultima oportunidad, sino ya no se que podria utilizar
 ## 🎨 Diseño Visual y Prototipo
 ## Puedes ver el diseño visual completo y las pantallas de la aplicación en el siguiente enlace:
 (AQUI_IRIA_EL_LIN_DE_CANCA 
@@ -77,4 +79,59 @@ Cuando un cliente solicita dejar el pedido en cuenta corriente o realiza un pago
 3. **Acción de Alerta:** Si el cliente solicita mercadería en cuenta corriente y el saldo acumulado supera su `Limite_Credito`, la aplicación del celular muestra una advertencia en pantalla, indicando al vendedor que debe exigir un pago antes de bajar más botellas.
 4. **Registro de Cobro:** Si el cliente paga, el vendedor registra un movimiento de tipo "Abono a Deuda" con valor negativo, actualizando el saldo deudor de forma inmediata.
 
-## santiagos-app-ph9g
+## santiagos-app-ph9g Es el link de la app que creeamos en GIL
+
+
+## 🛠️ 3. Arquitectura del Modelo de Datos (Estructura de Tablas)
+Para garantizar el funcionamiento de la aplicación en el dispositivo móvil, el modelo se organiza en tres tablas de datos interconectadas mediante identificadores (IDs) relacionales:
+
+### 📊 Tabla 1: Vinos (Inventario del Vendedor)
+Es el catálogo de productos que el vendedor lleva consigo o tiene asignado para ofrecer.
+* **ID_Vino:** Código numérico único asignado a cada etiqueta para agilizar la carga en la pantalla del celular.
+* **Marca_Bodega / Etiqueta_Nombre:** Datos de identificación comercial del vino (Ej. Catena Zapata, Angelica Zapata).
+* **Tipo_Uva:** Clasificación enológica (Malbec, Cabernet, Chardonnay, etc.) que permite al vendedor filtrar rápidamente los productos según el interés del cliente.
+* **Proveedor:** Distribuidora o bodega de origen que provee el lote.
+* **Precio_Costo y Precio_Venta:** Valores base para que la aplicación calcule automáticamente los montos de facturación en la calle.
+* **Stock_Actual:** Cantidad de botellas disponibles en tiempo real. Disminuye con cada entrega registrada por el vendedor.
+
+### 👥 Tabla 2: Clientes (Agenda Comercial)
+Es la base de datos personal de los clientes que componen la ruta de venta del usuario.
+* **ID_Cliente:** Código identificador único para cada comercio o comprador particular.
+* **Nombre_Razon_Social / Telefono:** Información esencial de contacto para llamadas o geolocalización rápida desde el celular.
+* **Condicion_Pago:** Define la regla de cobro para ese cliente ("Efectivo/Inmediato" o autorizado a operar en "Cuenta Corriente").
+* **Limite_Credito:** Monto máximo de deuda que el vendedor le permite acumular a ese cliente antes de suspenderle las entregas en cuenta corriente.
+
+### 💸 Tabla 3: Movimientos (Registro de Transacciones en Campo)
+Actúa como el libro diario donde el vendedor anota cada acción que sucede durante su jornada en la calle (entregas de mercadería o cobros de dinero).
+* **ID_Movimiento:** Número correlativo interno que genera la App por cada operación.
+* **Fecha:** Registro temporal automático de cuándo se realizó la visita o el cobro.
+* **ID_Cliente / ID_Vino:** Vinculación directa que indica a qué cliente se visitó y qué producto se le entregó.
+* **Cantidad_Botellas:** Volumen físico entregado en el momento (resta del stock del vendedor).
+* **Total_Transaccion:** Expresión financiera de la operación. Se registra con signo positivo cuando se entregan vinos (aumenta la deuda del cliente) y con signo negativo cuando el cliente realiza un pago (ingreso de dinero que reduce la deuda).
+* **Estado_Pago:** Clasificación de la transacción en el momento de la carga ("En Cuenta Corriente", "Pagado", "Abono a Deuda").
+
+---
+
+## 💻 4. Procedimiento Operativo de la App (Lógica de Negocio en Movilidad)
+
+### Flujo A: Registro de Venta y Descuento de Stock en la Calle
+Cuando el vendedor visita un cliente y le deja mercadería:
+1. El vendedor abre la App en su celular, selecciona el cliente e ingresa el ID_Vino y la Cantidad_Botellas entregadas.
+2. La aplicación da de alta la transacción en la tabla Movimientos.
+3. Internamente, la App actualiza la tabla Vinos restando las unidades vendidas (Stock_Actual = Stock_Actual - Cantidad_Botellas), permitiendo al vendedor saber exactamente cuántas botellas le quedan en el vehículo para el próximo cliente.
+
+### Flujo B: Consulta de Cuenta Corriente y Cobranzas en Tiempo Real
+Cuando un cliente solicita dejar el pedido en cuenta corriente o realiza un pago parcial de su deuda:
+1. El vendedor busca al cliente en su aplicación.
+2. La App escanea la tabla Movimientos filtrando por el ID_Cliente y realiza una suma algebraica de la columna Total_Transaccion.
+3. **Acción de Alerta:** Si el cliente solicita mercadería en cuenta corriente y el saldo acumulado supera su Limite_Credito, la aplicación del celular muestra una advertencia en pantalla, indicando al vendedor que debe exigir un pago antes de bajar más botellas.
+4. **Registro de Cobro:** Si el cliente paga, el vendedor registra un movimiento de tipo "Abono a Deuda" con valor negativo, actualizando el saldo deudor de forma inmediata.
+
+---
+
+## 💾 5. Base de Datos Relacional del Proyecto
+El motor de datos que alimenta la lógica de esta aplicación móvil ha sido desarrollado en la nube, estructurando de manera vinculada las tres pestañas del modelo de negocio. 
+
+Puede acceder a la base de datos con los datos de prueba del inventario, la agenda de clientes y el libro de movimientos en el siguiente enlace:
+👉 **[Haga clic aquí para ver las Tablas del Modelo en Google Sheets](https://docs.google.com/spreadsheets/d/193w7r3CKkd6NLFo53c-3g9kQ6pTCOWTG/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true )https://docs.google.com/spreadsheets/d/1Jq_DqK2IgGlvvRaT5-FK4__VNSfHSwQO/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true ; https://docs.google.com/spreadsheets/d/1YHxrgQZTUiK8HsRJQ-B59F1JLgh_liPK/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true
+
