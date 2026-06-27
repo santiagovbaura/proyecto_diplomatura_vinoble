@@ -15,10 +15,10 @@ Este proyecto resuelve la falta de herramientas simples e integrales para peque�
 Va a permitir a pequeños emprendedores del vino gestionar su negocio de forma simple y ordenada, ahorrando tiempo y reduciendo errores. Facilita el control del stock y las ventas en tiempo real desde el teléfono, mejorando la eficiencia y la toma de decisiones, y brindando mayor tranquilidad en el día a día. 
 
 ## 🐦 Tecnologías utilizadas
-Excel: para hacer las tabalas
-Cnava: para diseñar la app
-GILDE: intente de todas formas, pero no podia evitar no pagar unas sucripcion anual
-VERCEL: es mi ultima oportunidad, sino ya no se que podria utilizar
+*Excel: para hacer las tabalas
+*Google Sheets (BASE DE DATOS)
+*Glide (APP)
+*Canva (DISEÑO)
 ## 🎨 Diseño Visual y Prototipo
 ## Puedes ver el diseño visual completo y las pantallas de la aplicación en el siguiente enlace:
 (AQUI_IRIA_EL_LIN_DE_CANCA 
