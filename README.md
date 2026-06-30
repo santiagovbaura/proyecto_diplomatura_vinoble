@@ -37,7 +37,7 @@ La aplicación se estructura como un sistema relacional cerrado de gestión pers
 
 1. **Catálogo e Inventario de Bolsillo:** Permite al vendedor saber con precisión qué etiquetas tiene disponibles en su vehículo o depósito antes de confirmar una venta, detallando marcas y tipos de uva.
 2. **Administración Autónoma de Clientes:** Centraliza el perfil comercial de los compradores de su zona (restaurantes, vinotecas, clientes particulares) y sus condiciones de pago pactadas.
-3. **Control de Reparto y Cobranzas (Libro de Ruta):** Registra cada transacción en tiempo real al momento de dejar las botellas, automatizando el cálculo de deudas y saldos en cuenta corriente sin necesidad de usar planillas de papel.
+3. **Control de Reparto y Cobranzas (Libro de Ruta):** Registra cada transacción en tiempo real al momento de dejar las botellas, automatizando el cálculo de deudas y saldos en cuenta corriente sin necesidad de usar planillas de papel. (Esto no lo desarrolle)
 
 ## 🛠️ 3. Arquitectura del Modelo de Datos (Estructura de Tablas)
 Para garantizar el funcionamiento de la aplicación en el dispositivo móvil, el modelo se organiza en tres tablas de datos interconectadas mediante identificadores (IDs):
@@ -58,7 +58,7 @@ Es la base de datos personal de los clientes que componen la ruta de venta del u
 * **Condicion_Pago:** Define la regla de cobro para ese cliente ("Efectivo/Inmediato" o autorizado a operar en "Cuenta Corriente").
 * **Limite_Credito:** Monto máximo de deuda que el vendedor le permite acumular a ese cliente antes de suspenderle las entregas en cuenta corriente.
 
-### 💸 Tabla 3: `Movimientos` (Registro de Transacciones en Campo)
+### 💸 Tabla 3: `Movimientos` (Registro de Transacciones en Campo)  NO lo implementamos en la app
 Actúa como el libro diario donde el vendedor anota cada acción que sucede durante su jornada en la calle (entregas de mercadería o cobros de dinero).
 * **ID_Movimiento (Clave Primaria):** Número correlativo interno que genera la App por cada operación.
 * **Fecha:** Registro temporal automático de cuándo se realizó la visita o el cobro.
@@ -73,23 +73,25 @@ Actúa como el libro diario donde el vendedor anota cada acción que sucede dura
 Cuando el vendedor visita un cliente y le deja mercadería:
 1. El vendedor abre la App en su celular, selecciona el cliente e ingresa el `ID_Vino` y la `Cantidad_Botellas` entregadas.
 2. La aplicación da de alta la transacción en la tabla `Movimientos`.
-3. Internamente, la App actualiza la tabla `Vinos` restando las unidades vendidas (`Stock_Actual = Stock_Actual - Cantidad_Botellas`), permitiendo al vendedor saber exactamente cuántas botellas le quedan en el vehículo para el próximo cliente.
-
-### Flujo B: Consulta de Cuenta Corriente y Cobranzas en Tiempo Real
+3. Internamente, la App actualiza la tabla `Vinos` restando las unidades vendidas (`Stock_Actual = Stock_Actual - Cantidad_Botellas`), permitiendo al vendedor saber exactamente cuántas botellas
+   
+### Flujo B: Consulta de Cuenta Corriente y Cobranzas en Tiempo Real  (no lo implemetamos)
 Cuando un cliente solicita dejar el pedido en cuenta corriente o realiza un pago parcial de su deuda:
 1. El vendedor busca al cliente en su aplicación.
 2. La App escanea la tabla `Movimientos` filtrando por el `ID_Cliente` y realiza una suma algebraica de la columna `Total_Transaccion`.
 3. **Acción de Alerta:** Si el cliente solicita mercadería en cuenta corriente y el saldo acumulado supera su `Limite_Credito`, la aplicación del celular muestra una advertencia en pantalla, indicando al vendedor que debe exigir un pago antes de bajar más botellas.
 4. **Registro de Cobro:** Si el cliente paga, el vendedor registra un movimiento de tipo "Abono a Deuda" con valor negativo, actualizando el saldo deudor de forma inmediata.
-
-## 🤖🤖PROYECTO DESARROLLADO EN CLAUDE 
+ 
+## 🤖🤖PROYECTO DESARROLLADO EN CLAUDE - La clase del 30/06/2026 nos dio ganas de porbar el soonet 5
 Cómo funciona:
 Pestaña Vinos: cada vino muestra bodega, etiqueta, cepa, proveedor, precio costo/venta y stock. Botón "Recibir stock" para cuando entra mercadería, y "Entregar a cliente" para cuando le dejás botellas a alguien — esto descuenta del stock del vino automáticamente.
 Pestaña Clientes: cada cliente muestra el total de botellas que tiene acumuladas, desglosado por vino, más el historial completo de entregas.
 Importar Excel: si más adelante actualizás tus planillas, podés volver a subirlas desde el botón "Importar Excel" (detecta tus columnas automáticamente y actualiza por nombre, sin duplicar).
 Todo queda guardado solo — no hace falta exportar ni reabrir el Excel.
 
-Una entrega siempre baja el stock del vino y suma al total del cliente en el mismo movimiento, tal como pediste.Control de vinosCódigo · HTML 
+Una entrega siempre baja el stock del vino y suma al total del cliente en el mismo movimiento, tal como pediste.Control de vinosCódigo 
+
+## APP DE ESCRITORIO: file:///C:/Users/L12084/Desktop/proyecto/control-de-vinos.html
 
 ## 💾 5. Base de Datos Relacional del Proyecto
 El motor de datos que alimenta la lógica de esta aplicación móvil ha sido desarrollado en la nube, estructurando de manera vinculada las tres pestañas del modelo de negocio. 
@@ -97,3 +99,4 @@ El motor de datos que alimenta la lógica de esta aplicación móvil ha sido des
 Puede acceder a la base de datos con los datos de prueba del inventario, la agenda de clientes y el libro de movimientos en el siguiente enlace:
 👉 **[Haga clic aquí para ver las Tablas del Modelo en Google Sheets](https://docs.google.com/spreadsheets/d/193w7r3CKkd6NLFo53c-3g9kQ6pTCOWTG/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true )https://docs.google.com/spreadsheets/d/1Jq_DqK2IgGlvvRaT5-FK4__VNSfHSwQO/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true ; https://docs.google.com/spreadsheets/d/1YHxrgQZTUiK8HsRJQ-B59F1JLgh_liPK/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true
 
+Con SONNET 5, nos fue mas simplesubimos directamte las tablas y sucedio la magia.
