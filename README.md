@@ -1,5 +1,3 @@
-git config MYS
-
 # proyecto_diplomatura_vinoble
 
 ## Alumnos Creadores: Mayra Martin y Santiago Varela
