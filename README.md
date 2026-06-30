@@ -82,7 +82,14 @@ Cuando un cliente solicita dejar el pedido en cuenta corriente o realiza un pago
 3. **Acción de Alerta:** Si el cliente solicita mercadería en cuenta corriente y el saldo acumulado supera su `Limite_Credito`, la aplicación del celular muestra una advertencia en pantalla, indicando al vendedor que debe exigir un pago antes de bajar más botellas.
 4. **Registro de Cobro:** Si el cliente paga, el vendedor registra un movimiento de tipo "Abono a Deuda" con valor negativo, actualizando el saldo deudor de forma inmediata.
 
-## santiagos-app-ph9g Es el link de la app que creeamos en GIL
+## 🤖🤖PROYECTO DESARROLLADO EN CLAUDE 
+Cómo funciona:
+Pestaña Vinos: cada vino muestra bodega, etiqueta, cepa, proveedor, precio costo/venta y stock. Botón "Recibir stock" para cuando entra mercadería, y "Entregar a cliente" para cuando le dejás botellas a alguien — esto descuenta del stock del vino automáticamente.
+Pestaña Clientes: cada cliente muestra el total de botellas que tiene acumuladas, desglosado por vino, más el historial completo de entregas.
+Importar Excel: si más adelante actualizás tus planillas, podés volver a subirlas desde el botón "Importar Excel" (detecta tus columnas automáticamente y actualiza por nombre, sin duplicar).
+Todo queda guardado solo — no hace falta exportar ni reabrir el Excel.
+
+Una entrega siempre baja el stock del vino y suma al total del cliente en el mismo movimiento, tal como pediste.Control de vinosCódigo · HTML 
 
 ## 💾 5. Base de Datos Relacional del Proyecto
 El motor de datos que alimenta la lógica de esta aplicación móvil ha sido desarrollado en la nube, estructurando de manera vinculada las tres pestañas del modelo de negocio. 
