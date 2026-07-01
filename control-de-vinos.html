@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Control de vinos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg: #161514;
+  --surface: #1f1d1b;
+  --surface-2: #292623;
+  --border: #3a3531;
+  --text: #ece8e2;
+  --text-dim: #a89e93;
+  --text-faint: #756a60;
+  --entrada: #6f9a64;
+  --entrada-dim: #45593f;
+  --entrega: #a8475a;
+  --entrega-dim: #6b2e3a;
+  --gold: #c79a4b;
+  --radius: 6px;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  min-height:100vh;
+}
+.app{display:flex; min-height:100vh;}
+h1,h2,h3{font-family:'Space Grotesk', sans-serif; margin:0;}
+::selection{ background: var(--entrega-dim); color:#fff; }
+
+button{
+  font-family: 'IBM Plex Mono', monospace;
+  cursor:pointer;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 8px 14px;
+  font-size: 13px;
+  transition: border-color .15s, background .15s;
+}
+button:hover{ border-color: var(--text-faint); background:#332e2a; }
+button:active{ transform: translateY(1px); }
+button.ghost-link{ background:none; border:none; color:var(--text-dim); padding:6px 0; font-size:12px; text-decoration: underline dotted; }
+
+input, select{
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 13px;
+  width:100%;
+}
+input:focus, select:focus{ outline:none; border-color: var(--text-faint); }
+label{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:4px; }
+
+.sidebar{
+  width: 330px; flex-shrink:0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display:flex; flex-direction:column;
+  height:100vh; position:sticky; top:0;
+}
+.sidebar-head{ padding: 18px 16px 12px; border-bottom: 1px solid var(--border); }
+.brand{ display:flex; align-items:baseline; gap:8px; }
+.brand .tag{ font-size:10px; letter-spacing:.12em; color: var(--gold); border:1px dashed var(--gold); padding:2px 6px; border-radius:4px; }
+
+.tabs{ display:flex; gap:4px; margin-top:14px; }
+.tab-btn{ flex:1; padding:7px; font-size:12px; border-radius:5px; border:1px solid var(--border); background:transparent; color:var(--text-dim); }
+.tab-btn.active{ background: var(--surface-2); color: var(--text); border-color: var(--text-faint); }
+
+.search-row{ margin-top:10px; }
+.import-row{ margin-top:8px; display:flex; gap:8px; }
+.import-row button{ flex:1; font-size:11px; padding:6px; }
+
+.item-list{ flex:1; overflow-y:auto; padding: 8px; }
+.item-card{
+  padding: 10px 12px; border-radius: var(--radius); margin-bottom:6px; cursor:pointer;
+  border:1px solid transparent; display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.item-card:hover{ background: var(--surface-2); }
+.item-card.active{ background: var(--surface-2); border-color: var(--border); }
+.item-card .iname{ font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.item-card .isub{ font-size:11px; color:var(--text-faint); }
+.item-card .ival{ font-size:14px; font-weight:600; flex-shrink:0; }
+.ival.zero{ color: var(--entrega); }
+
+.sidebar-foot{ padding: 12px; border-top:1px solid var(--border); }
+.sidebar-foot button{ width:100%; }
+
+.main{ flex:1; padding: 32px 40px; max-width: 800px; }
+.empty{ display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-top: 80px; color:var(--text-dim); }
+.empty h2{ color:var(--text); font-size:20px; }
+
+.detail-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px; }
+.detail-head h2{ font-size:21px; }
+.detail-head .sub{ color: var(--gold); font-size:13px; margin-top:4px; }
+.big-num{ text-align:right; }
+.big-num .num{ font-size:32px; font-weight:600; font-family:'Space Grotesk',sans-serif; }
+.big-num .unit{ font-size:11px; color:var(--text-dim); }
+
+.info-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin: 18px 0 22px; }
+.info-cell{ background: var(--surface); border:1px solid var(--border); border-radius:6px; padding:10px 12px; }
+.info-cell .k{ font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; }
+.info-cell .v{ font-size:13px; margin-top:3px; }
+
+.actions-row{ display:flex; gap:10px; margin-bottom: 22px; flex-wrap:wrap; }
+.stamp{
+  font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:12.5px; letter-spacing:.07em;
+  text-transform:uppercase; border-radius: 4px; padding: 9px 16px; border: 2px dashed; background: transparent;
+}
+.stamp.entrada{ color: var(--entrada); border-color: var(--entrada-dim); transform: rotate(-1deg); }
+.stamp.entrada:hover{ background: rgba(111,154,100,0.1); border-color: var(--entrada); }
+.stamp.entrega{ color: var(--entrega); border-color: var(--entrega-dim); transform: rotate(1deg); }
+.stamp.entrega:hover{ background: rgba(168,71,90,0.1); border-color: var(--entrega); }
+
+.move-form{ background: var(--surface); border:1px solid var(--border); border-radius:8px; padding: 16px; margin-bottom: 24px; }
+.move-form .row{ display:flex; gap:12px; margin-bottom:12px; }
+.move-form .row > div{ flex:1; }
+.move-form .form-actions{ display:flex; gap:8px; justify-content:flex-end; }
+.error-msg{ color: var(--entrega); font-size:12px; margin-bottom:10px; }
+
+.section-title{ font-size:13px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin: 22px 0 10px; }
+table{ width:100%; border-collapse: collapse; font-size:12.5px; }
+th{ text-align:left; color: var(--text-faint); font-weight:500; padding: 6px 8px; border-bottom:1px solid var(--border); font-size:11px; text-transform:uppercase; letter-spacing:.05em;}
+td{ padding: 8px 8px; border-bottom:1px solid var(--border); color: var(--text); }
+tr:last-child td{ border-bottom:none; }
+.badge{ display:inline-block; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:600; letter-spacing:.05em; }
+.badge.entrada{ color: var(--entrada); background: rgba(111,154,100,0.12); }
+.badge.entrega{ color: var(--entrega); background: rgba(168,71,90,0.12); }
+.note-cell{ color: var(--text-dim); }
+
+.modal-overlay{ position: fixed; inset:0; background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:50; }
+.modal{ background: var(--surface); border:1px solid var(--border); border-radius:10px; padding: 24px; width: 400px; max-height:88vh; overflow-y:auto; }
+.modal h3{ font-size:16px; margin-bottom: 16px; }
+.modal .row{ margin-bottom:12px; }
+.modal .form-actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:18px; }
+
+.loading{ padding:40px; color:var(--text-dim); }
+.import-summary{ font-size:12px; color: var(--text-dim); background:var(--surface); border:1px dashed var(--border); padding:10px 12px; border-radius:6px; margin-top:10px; }
+</style>
+</head>
+<body>
+<div id="root" class="loading">Cargando bodega…</div>
+
+<script>
+const STORAGE_KEY = 'vinos-data-v1';
+
+const DEFAULT_DATA = {
+  vinos: [
+    { id: 'v1', bodega: 'Catena Zapata', etiqueta: 'Angelica Zapata', cepa: 'Malbec', proveedor: 'Distribuidora Cuyo', precioCosto: 12000, precioVenta: 18500, stock: 48 },
+    { id: 'v2', bodega: 'Rutini', etiqueta: 'Rutini Cabernet', cepa: 'Cabernet', proveedor: 'Distribuidora Cuyo', precioCosto: 11000, precioVenta: 16800, stock: 24 },
+    { id: 'v3', bodega: 'El Enemigo', etiqueta: 'El Enemigo Chardonnay', cepa: 'Chardonnay', proveedor: 'Vinoteca Mayorista', precioCosto: 14000, precioVenta: 22000, stock: 12 },
+    { id: 'v4', bodega: 'Luigi Bosca', etiqueta: 'Luigi Bosca De Sangre', cepa: 'Blend', proveedor: 'Distribuidora Cuyo', precioCosto: 13500, precioVenta: 20500, stock: 30 },
+    { id: 'v5', bodega: 'Zuccardi', etiqueta: 'Serie A', cepa: 'Bonarda', proveedor: 'Bodega Directo', precioCosto: 8500, precioVenta: 13200, stock: 60 }
+  ],
+  clientes: [
+    { id: 'c101', nombre: 'Resto El Cauce Puerto Madro', codigo: '101' },
+    { id: 'c102', nombre: 'Vinoteca San Telmo', codigo: '102' },
+    { id: 'c103', nombre: 'Hotel Plaza S.A.', codigo: '103' },
+    { id: 'c104', nombre: 'Leo Messi (Particular)', codigo: '104' }
+  ],
+  movimientos: []
+};
+
+let state = { vinos: [], clientes: [], movimientos: [] };
+let activeTab = 'vinos';
+let selectedVinoId = null;
+let selectedClienteId = null;
+let search = '';
+let modal = null;
+let formError = '';
+
+function uid(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      state = JSON.parse(res.value);
+    } else {
+      state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      await saveState();
+    }
+  }catch(e){
+    state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    await saveState();
+  }
+  if(state.vinos.length) selectedVinoId = state.vinos[0].id;
+  if(state.clientes.length) selectedClienteId = state.clientes[0].id;
+  render();
+}
+
+async function saveState(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), false); }
+  catch(e){ console.error('No se pudo guardar', e); }
+}
+
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' ' +
+         d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+}
+function fmtMoney(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function clienteTotal(clienteId){
+  return state.movimientos.filter(m => m.type === 'entrega' && m.clienteId === clienteId).reduce((s,m) => s + m.qty, 0);
+}
+function vinoNombre(vinoId){
+  const v = state.vinos.find(x => x.id === vinoId);
+  return v ? (v.bodega + ' — ' + v.etiqueta) : 'Vino eliminado';
+}
+function clienteNombre(clienteId){
+  const c = state.clientes.find(x => x.id === clienteId);
+  return c ? c.nombre : 'Cliente eliminado';
+}
+
+function addVino(data){
+  state.vinos.push({ id: uid('v'), bodega: data.bodega, etiqueta: data.etiqueta, cepa: data.cepa, proveedor: data.proveedor, precioCosto: data.precioCosto, precioVenta: data.precioVenta, stock: data.stock });
+  saveState();
+}
+function addCliente(data){
+  state.clientes.push({ id: uid('c'), nombre: data.nombre, codigo: data.codigo });
+  saveState();
+}
+
+function registrarMovimiento(type, vinoId, clienteId, qty, note){
+  const vino = state.vinos.find(v => v.id === vinoId);
+  if(!vino){ formError = 'Elegí un vino.'; render(); return; }
+  if(type === 'entrega' && !clienteId){ formError = 'Elegí un cliente.'; render(); return; }
+  qty = Math.round(Number(qty));
+  if(!qty || qty <= 0){ formError = 'Ingresá una cantidad válida.'; render(); return; }
+  if(type === 'entrega' && qty > vino.stock){ formError = 'No hay suficiente stock de ese vino.'; render(); return; }
+
+  vino.stock += (type === 'entrada' ? qty : -qty);
+  state.movimientos.push({
+    id: uid('m'), vinoId, type, qty,
+    clienteId: type === 'entrega' ? clienteId : null,
+    date: new Date().toISOString(),
+    note: note || (type === 'entrada' ? 'Ingreso de stock' : 'Entrega a cliente'),
+    balanceAfter: vino.stock
+  });
+  formError = '';
+  modal = null;
+  saveState();
+  render();
+}
+
+function deleteVino(id){
+  state.vinos = state.vinos.filter(v => v.id !== id);
+  state.movimientos = state.movimientos.filter(m => m.vinoId !== id);
+  if(selectedVinoId === id) selectedVinoId = state.vinos.length ? state.vinos[0].id : null;
+  saveState(); render();
+}
+function deleteCliente(id){
+  state.clientes = state.clientes.filter(c => c.id !== id);
+  state.movimientos = state.movimientos.filter(m => m.clienteId !== id);
+  if(selectedClienteId === id) selectedClienteId = state.clientes.length ? state.clientes[0].id : null;
+  saveState(); render();
+}
+
+function normalizeHeader(h){
+  return String(h).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+}
+function findCol(headers, candidates){
+  const norm = headers.map(normalizeHeader);
+  for(const cand of candidates){
+    const idx = norm.indexOf(normalizeHeader(cand));
+    if(idx !== -1) return idx;
+  }
+  return -1;
+}
+
+function importExcel(file, kind){
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try{
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if(!rows.length) return;
+      const headers = rows[0];
+      let added = 0, updated = 0;
+
+      if(kind === 'vinos'){
+        const cBodega = findCol(headers, ['marca_bodega','bodega','marca']);
+        const cEtiqueta = findCol(headers, ['etiqueta_nombre','etiqueta','nombre']);
+        const cCepa = findCol(headers, ['tipo_uva','cepa','varietal']);
+        const cProveedor = findCol(headers, ['proveedor']);
+        const cCosto = findCol(headers, ['precio_costo','costo']);
+        const cVenta = findCol(headers, ['precio_venta','venta','precio']);
+        const cStock = findCol(headers, ['stock_actual','stock','cantidad']);
+
+        for(let i=1;i<rows.length;i++){
+          const r = rows[i];
+          const bodega = cBodega !== -1 ? String(r[cBodega] || '').trim() : '';
+          const etiqueta = cEtiqueta !== -1 ? String(r[cEtiqueta] || '').trim() : '';
+          if(!bodega && !etiqueta) continue;
+          const existing = state.vinos.find(v => v.bodega === bodega && v.etiqueta === etiqueta);
+          const data = {
+            bodega, etiqueta,
+            cepa: cCepa !== -1 ? String(r[cCepa] || '').trim() : '',
+            proveedor: cProveedor !== -1 ? String(r[cProveedor] || '').trim() : '',
+            precioCosto: cCosto !== -1 ? Number(r[cCosto]) || 0 : 0,
+            precioVenta: cVenta !== -1 ? Number(r[cVenta]) || 0 : 0,
+            stock: cStock !== -1 ? Math.round(Number(r[cStock]) || 0) : 0
+          };
+          if(existing){
+            Object.assign(existing, data);
+            updated++;
+          } else {
+            state.vinos.push({ id: uid('v'), ...data });
+            added++;
+          }
+        }
+      } else {
+        const cNombre = findCol(headers, ['nombre_razon_social','nombre','razonsocial','cliente']);
+        const cCodigo = findCol(headers, ['codigo','code','id_cliente']);
+
+        for(let i=1;i<rows.length;i++){
+          const r = rows[i];
+          const nombre = cNombre !== -1 ? String(r[cNombre] || '').trim() : '';
+          if(!nombre) continue;
+          const codigo = cCodigo !== -1 ? String(r[cCodigo] || '').trim() : '';
+          const existing = state.clientes.find(c => c.nombre === nombre);
+          if(existing){
+            existing.codigo = codigo || existing.codigo;
+            updated++;
+          } else {
+            state.clientes.push({ id: uid('c'), nombre, codigo });
+            added++;
+          }
+        }
+      }
+
+      saveState();
+      if(state.vinos.length && !selectedVinoId) selectedVinoId = state.vinos[0].id;
+      if(state.clientes.length && !selectedClienteId) selectedClienteId = state.clientes[0].id;
+      alert('Importación lista: ' + added + ' nuevos, ' + updated + ' actualizados.');
+      render();
+    }catch(err){
+      alert('No se pudo leer el archivo. Revisá que sea un Excel válido.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function render(){
+  const root = document.getElementById('root');
+  root.classList.remove('loading');
+
+  const isVinos = activeTab === 'vinos';
+  const listSource = isVinos ? state.vinos : state.clientes;
+  const filtered = listSource.filter(item => {
+    const hay = isVinos ? (item.bodega + ' ' + item.etiqueta) : item.nombre;
+    return hay.toLowerCase().includes(search.toLowerCase());
+  });
+
+  const listHtml = filtered.length ? filtered.map(item => {
+    if(isVinos){
+      return `<div class="item-card ${item.id === selectedVinoId ? 'active' : ''}" data-select-vino="${item.id}">
+        <div><div class="iname">${escapeHtml(item.bodega)}</div><div class="isub">${escapeHtml(item.etiqueta)}</div></div>
+        <div class="ival ${item.stock === 0 ? 'zero' : ''}">${item.stock}</div>
+      </div>`;
+    } else {
+      const total = clienteTotal(item.id);
+      return `<div class="item-card ${item.id === selectedClienteId ? 'active' : ''}" data-select-cliente="${item.id}">
+        <div><div class="iname">${escapeHtml(item.nombre)}</div><div class="isub">${item.codigo ? 'cod. ' + escapeHtml(item.codigo) : 'sin codigo'}</div></div>
+        <div class="ival">${total}</div>
+      </div>`;
+    }
+  }).join('') : `<div style="padding:20px 10px; color:var(--text-faint); font-size:12.5px;">Sin resultados.</div>`;
+
+  let mainHtml = '';
+
+  if(isVinos){
+    const vino = state.vinos.find(v => v.id === selectedVinoId);
+    if(!state.vinos.length){
+      mainHtml = `<div class="empty"><h2>Cargá tu primer vino</h2><p style="max-width:380px; line-height:1.6;">Agregalo a mano o importá tu Excel de vinos desde la barra lateral.</p><button data-action="open-new-vino" style="margin-top:6px;">+ Agregar vino</button></div>`;
+    } else if(!vino){
+      mainHtml = `<div class="empty"><h2>Elegí un vino</h2><p>Seleccioná uno de la lista para ver el detalle.</p></div>`;
+    } else {
+      const movs = state.movimientos.filter(m => m.vinoId === vino.id).sort((a,b) => new Date(b.date) - new Date(a.date));
+      const rows = movs.length ? movs.map(m => `
+        <tr>
+          <td>${fmtDate(m.date)}</td>
+          <td><span class="badge ${m.type}">${m.type === 'entrada' ? 'Entrada' : 'Entrega'}</span></td>
+          <td>${m.clienteId ? escapeHtml(clienteNombre(m.clienteId)) : '—'}</td>
+          <td>${m.type === 'entrada' ? '+' : '-'}${m.qty}</td>
+          <td>${m.balanceAfter}</td>
+          <td class="note-cell">${escapeHtml(m.note || '')}</td>
+        </tr>`).join('') : `<tr><td colspan="6" style="color:var(--text-faint); text-align:center; padding:20px;">Todavía no hay movimientos.</td></tr>`;
+
+      const formHtml = modal === 'mov-entrada' || modal === 'mov-entrega' ? renderMovForm(modal === 'mov-entrada' ? 'entrada' : 'entrega', vino.id, null) : '';
+
+      mainHtml = `
+        <div class="detail-head">
+          <div><h2>${escapeHtml(vino.bodega)}</h2><div class="sub">${escapeHtml(vino.etiqueta)}</div></div>
+          <div class="big-num"><div class="num">${vino.stock}</div><div class="unit">botellas en stock</div></div>
+        </div>
+        <div class="info-grid">
+          <div class="info-cell"><div class="k">Cepa</div><div class="v">${escapeHtml(vino.cepa || '—')}</div></div>
+          <div class="info-cell"><div class="k">Proveedor</div><div class="v">${escapeHtml(vino.proveedor || '—')}</div></div>
+          <div class="info-cell"><div class="k">Precio costo</div><div class="v">${fmtMoney(vino.precioCosto || 0)}</div></div>
+          <div class="info-cell"><div class="k">Precio venta</div><div class="v">${fmtMoney(vino.precioVenta || 0)}</div></div>
+        </div>
+        <div class="actions-row">
+          <button class="stamp entrada" data-action="open-entrada">Recibir stock</button>
+          <button class="stamp entrega" data-action="open-entrega">Entregar a cliente</button>
+          <button data-action="delete-vino" style="margin-left:auto;">Eliminar vino</button>
+        </div>
+        ${formHtml}
+        <div class="section-title">Movimientos</div>
+        <table><thead><tr><th>Fecha</th><th>Tipo</th><th>Cliente</th><th>Cant.</th><th>Saldo</th><th>Nota</th></tr></thead><tbody>${rows}</tbody></table>
+      `;
+    }
+  } else {
+    const cliente = state.clientes.find(c => c.id === selectedClienteId);
+    if(!state.clientes.length){
+      mainHtml = `<div class="empty"><h2>Cargá tu primer cliente</h2><p style="max-width:380px; line-height:1.6;">Agregalo a mano o importá tu Excel de clientes desde la barra lateral.</p><button data-action="open-new-cliente" style="margin-top:6px;">+ Agregar cliente</button></div>`;
+    } else if(!cliente){
+      mainHtml = `<div class="empty"><h2>Elegí un cliente</h2><p>Seleccioná uno de la lista para ver el detalle.</p></div>`;
+    } else {
+      const movs = state.movimientos.filter(m => m.type === 'entrega' && m.clienteId === cliente.id).sort((a,b) => new Date(b.date) - new Date(a.date));
+      const total = clienteTotal(cliente.id);
+
+      const breakdown = {};
+      movs.forEach(m => { breakdown[m.vinoId] = (breakdown[m.vinoId] || 0) + m.qty; });
+      const breakdownHtml = Object.keys(breakdown).length ? Object.entries(breakdown).map(([vinoId, qty]) => `
+        <tr><td>${escapeHtml(vinoNombre(vinoId))}</td><td>${qty}</td></tr>
+      `).join('') : `<tr><td colspan="2" style="color:var(--text-faint); text-align:center; padding:16px;">Sin entregas todavía.</td></tr>`;
+
+      const rows = movs.length ? movs.map(m => `
+        <tr><td>${fmtDate(m.date)}</td><td>${escapeHtml(vinoNombre(m.vinoId))}</td><td>${m.qty}</td><td class="note-cell">${escapeHtml(m.note || '')}</td></tr>
+      `).join('') : `<tr><td colspan="4" style="color:var(--text-faint); text-align:center; padding:20px;">Todavía no hay entregas.</td></tr>`;
+
+      const formHtml = modal === 'mov-entrega-cliente' ? renderMovForm('entrega', null, cliente.id) : '';
+
+      mainHtml = `
+        <div class="detail-head">
+          <div><h2>${escapeHtml(cliente.nombre)}</h2><div class="sub">${cliente.codigo ? 'codigo ' + escapeHtml(cliente.codigo) : 'sin codigo'}</div></div>
+          <div class="big-num"><div class="num">${total}</div><div class="unit">botellas entregadas</div></div>
+        </div>
+        <div class="actions-row">
+          <button class="stamp entrega" data-action="open-entrega-cliente">Nueva entrega</button>
+          <button data-action="delete-cliente" style="margin-left:auto;">Eliminar cliente</button>
+        </div>
+        ${formHtml}
+        <div class="section-title">Por vino</div>
+        <table><thead><tr><th>Vino</th><th>Botellas</th></tr></thead><tbody>${breakdownHtml}</tbody></table>
+        <div class="section-title">Historial de entregas</div>
+        <table><thead><tr><th>Fecha</th><th>Vino</th><th>Cant.</th><th>Nota</th></tr></thead><tbody>${rows}</tbody></table>
+      `;
+    }
+  }
+
+  const modalHtml = renderOverlayModal();
+
+  root.innerHTML = `
+    <div class="app">
+      <div class="sidebar">
+        <div class="sidebar-head">
+          <div class="brand"><h1 style="font-size:17px;">Control de vinos</h1><span class="tag">v1</span></div>
+          <div class="tabs">
+            <button class="tab-btn ${isVinos ? 'active' : ''}" data-action="tab-vinos">Vinos</button>
+            <button class="tab-btn ${!isVinos ? 'active' : ''}" data-action="tab-clientes">Clientes</button>
+          </div>
+          <div class="search-row"><input id="search-input" type="text" placeholder="${isVinos ? 'Buscar vino o bodega' : 'Buscar cliente'}" value="${escapeHtml(search)}"></div>
+          <div class="import-row">
+            <button data-action="trigger-import">Importar Excel</button>
+            <input type="file" id="file-import" accept=".xlsx,.xls" style="display:none;">
+          </div>
+        </div>
+        <div class="item-list">${listHtml}</div>
+        <div class="sidebar-foot"><button data-action="${isVinos ? 'open-new-vino' : 'open-new-cliente'}">+ Agregar ${isVinos ? 'vino' : 'cliente'}</button></div>
+      </div>
+      <div class="main">${mainHtml}</div>
+    </div>
+    ${modalHtml}
+  `;
+
+  attachEvents();
+}
+
+function renderMovForm(type, fixedVinoId, fixedClienteId){
+  const vinoOptions = state.vinos.map(v => `<option value="${v.id}" ${v.id === fixedVinoId ? 'selected' : ''}>${escapeHtml(v.bodega)} — ${escapeHtml(v.etiqueta)} (${v.stock} u.)</option>`).join('');
+  const clienteOptions = state.clientes.map(c => `<option value="${c.id}" ${c.id === fixedClienteId ? 'selected' : ''}>${escapeHtml(c.nombre)}</option>`).join('');
+  return `
+    <div class="move-form">
+      ${formError ? `<div class="error-msg">${escapeHtml(formError)}</div>` : ''}
+      <div class="row">
+        ${!fixedVinoId ? `<div><label>Vino</label><select id="mov-vino">${vinoOptions}</select></div>` : ''}
+        ${type === 'entrega' && !fixedClienteId ? `<div><label>Cliente</label><select id="mov-cliente">${clienteOptions}</select></div>` : ''}
+        <div><label>Cantidad</label><input id="mov-qty" type="number" min="1" step="1" placeholder="0"></div>
+      </div>
+      <div class="row"><div><label>Nota (opcional)</label><input id="mov-note" type="text" placeholder="${type === 'entrada' ? 'Compra a proveedor' : 'Entrega / consumo'}"></div></div>
+      <input type="hidden" id="mov-type" value="${type}">
+      ${fixedVinoId ? `<input type="hidden" id="mov-vino-fixed" value="${fixedVinoId}">` : ''}
+      ${fixedClienteId ? `<input type="hidden" id="mov-cliente-fixed" value="${fixedClienteId}">` : ''}
+      <div class="form-actions">
+        <button data-action="cancel-move">Cancelar</button>
+        <button data-action="confirm-move" style="border-color:${type === 'entrada' ? 'var(--entrada)' : 'var(--entrega)'}; color:${type === 'entrada' ? 'var(--entrada)' : 'var(--entrega)'};">Confirmar ${type === 'entrada' ? 'entrada' : 'entrega'}</button>
+      </div>
+    </div>`;
+}
+
+function renderOverlayModal(){
+  if(modal === 'new-vino'){
+    return `<div class="modal-overlay" data-action="close-modal-bg"><div class="modal" onclick="event.stopPropagation()">
+      <h3>Nuevo vino</h3>
+      <div class="row"><label>Bodega</label><input id="nv-bodega" type="text" placeholder="Catena Zapata"></div>
+      <div class="row"><label>Etiqueta</label><input id="nv-etiqueta" type="text" placeholder="Angelica Zapata"></div>
+      <div class="row" style="display:flex; gap:12px;">
+        <div style="flex:1;"><label>Cepa</label><input id="nv-cepa" type="text" placeholder="Malbec"></div>
+        <div style="flex:1;"><label>Proveedor</label><input id="nv-proveedor" type="text" placeholder="Distribuidora"></div>
+      </div>
+      <div class="row" style="display:flex; gap:12px;">
+        <div style="flex:1;"><label>Precio costo</label><input id="nv-costo" type="number" min="0" step="1" placeholder="0"></div>
+        <div style="flex:1;"><label>Precio venta</label><input id="nv-venta" type="number" min="0" step="1" placeholder="0"></div>
+        <div style="flex:1;"><label>Stock inicial</label><input id="nv-stock" type="number" min="0" step="1" placeholder="0"></div>
+      </div>
+      <div class="form-actions"><button data-action="close-modal">Cancelar</button><button data-action="save-vino">Crear vino</button></div>
+    </div></div>`;
+  }
+  if(modal === 'new-cliente'){
+    return `<div class="modal-overlay" data-action="close-modal-bg"><div class="modal" onclick="event.stopPropagation()">
+      <h3>Nuevo cliente</h3>
+      <div class="row"><label>Nombre / razón social</label><input id="nc-nombre" type="text" placeholder="Vinoteca San Telmo"></div>
+      <div class="row"><label>Codigo (opcional)</label><input id="nc-codigo" type="text" placeholder="105"></div>
+      <div class="form-actions"><button data-action="close-modal">Cancelar</button><button data-action="save-cliente">Crear cliente</button></div>
+    </div></div>`;
+  }
+  return '';
+}
+
+function attachEvents(){
+  document.querySelectorAll('[data-select-vino]').forEach(el => el.addEventListener('click', () => {
+    selectedVinoId = el.getAttribute('data-select-vino'); modal = null; formError=''; render();
+  }));
+  document.querySelectorAll('[data-select-cliente]').forEach(el => el.addEventListener('click', () => {
+    selectedClienteId = el.getAttribute('data-select-cliente'); modal = null; formError=''; render();
+  }));
+
+  const searchInput = document.getElementById('search-input');
+  if(searchInput){
+    searchInput.addEventListener('input', (e) => {
+      search = e.target.value;
+      const cursorPos = e.target.selectionStart;
+      render();
+      const ni = document.getElementById('search-input');
+      if(ni){ ni.focus(); ni.setSelectionRange(cursorPos, cursorPos); }
+    });
+  }
+
+  bindClick('tab-vinos', () => { activeTab = 'vinos'; search=''; modal=null; render(); });
+  bindClick('tab-clientes', () => { activeTab = 'clientes'; search=''; modal=null; render(); });
+
+  bindClick('open-new-vino', () => { modal = 'new-vino'; render(); });
+  bindClick('open-new-cliente', () => { modal = 'new-cliente'; render(); });
+  bindClick('close-modal', () => { modal = null; render(); });
+  bindClick('close-modal-bg', () => { modal = null; render(); });
+
+  bindClick('save-vino', () => {
+    const bodega = document.getElementById('nv-bodega').value.trim();
+    const etiqueta = document.getElementById('nv-etiqueta').value.trim();
+    if(!bodega || !etiqueta) return;
+    addVino({
+      bodega, etiqueta,
+      cepa: document.getElementById('nv-cepa').value.trim(),
+      proveedor: document.getElementById('nv-proveedor').value.trim(),
+      precioCosto: Number(document.getElementById('nv-costo').value) || 0,
+      precioVenta: Number(document.getElementById('nv-venta').value) || 0,
+      stock: Math.round(Number(document.getElementById('nv-stock').value)) || 0
+    });
+    modal = null; render();
+  });
+  bindClick('save-cliente', () => {
+    const nombre = document.getElementById('nc-nombre').value.trim();
+    if(!nombre) return;
+    addCliente({ nombre, codigo: document.getElementById('nc-codigo').value.trim() });
+    modal = null; render();
+  });
+
+  bindClick('open-entrada', () => { modal = 'mov-entrada'; formError=''; render(); });
+  bindClick('open-entrega', () => { modal = 'mov-entrega'; formError=''; render(); });
+  bindClick('open-entrega-cliente', () => { modal = 'mov-entrega-cliente'; formError=''; render(); });
+  bindClick('cancel-move', () => { modal = null; formError=''; render(); });
+
+  bindClick('confirm-move', () => {
+    const type = document.getElementById('mov-type').value;
+    const vinoFixed = document.getElementById('mov-vino-fixed');
+    const clienteFixed = document.getElementById('mov-cliente-fixed');
+    const vinoSel = document.getElementById('mov-vino');
+    const clienteSel = document.getElementById('mov-cliente');
+    const vinoId = vinoFixed ? vinoFixed.value : (vinoSel ? vinoSel.value : null);
+    const clienteId = clienteFixed ? clienteFixed.value : (clienteSel ? clienteSel.value : null);
+    const qty = document.getElementById('mov-qty').value;
+    const note = document.getElementById('mov-note').value.trim();
+    registrarMovimiento(type, vinoId, clienteId, qty, note);
+  });
+
+  bindClick('delete-vino', () => { if(confirm('¿Eliminar este vino y todo su historial?')) deleteVino(selectedVinoId); });
+  bindClick('delete-cliente', () => { if(confirm('¿Eliminar este cliente y su historial de entregas?')) deleteCliente(selectedClienteId); });
+
+  bindClick('trigger-import', () => { document.getElementById('file-import').click(); });
+  const fileInput = document.getElementById('file-import');
+  if(fileInput){
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(file) importExcel(file, activeTab);
+      e.target.value = '';
+    });
+  }
+}
+
+function bindClick(action, fn){
+  document.querySelectorAll(`[data-action="${action}"]`).forEach(el => el.addEventListener('click', fn));
+}
+
+loadState();
+</script>
+</body>
+</html>
