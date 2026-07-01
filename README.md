@@ -23,7 +23,7 @@ Va a permitir a pequeños emprendedores del vino gestionar su negocio de forma s
 *Canva (DISEÑO)
 ## 🎨 Diseño Visual y Prototipo
 ## Puedes ver el diseño visual completo y las pantallas de la aplicación en el siguiente enlace:
-(AQUI_IRIA_EL_LIN_DE_CANCA 
+file:///C:/Users/L12084/Desktop/proyecto/control-de-vinos/control-de-vinos.html
 
 ## Segunda Etapa
 ## 📝 Descripción del Proyecto
@@ -81,7 +81,7 @@ Cuando un cliente solicita dejar el pedido en cuenta corriente o realiza un pago
 3. **Acción de Alerta:** Si el cliente solicita mercadería en cuenta corriente y el saldo acumulado supera su `Limite_Credito`, la aplicación del celular muestra una advertencia en pantalla, indicando al vendedor que debe exigir un pago antes de bajar más botellas.
 4. **Registro de Cobro:** Si el cliente paga, el vendedor registra un movimiento de tipo "Abono a Deuda" con valor negativo, actualizando el saldo deudor de forma inmediata.
  
-## 🤖🤖PROYECTO DESARROLLADO EN CLAUDE - La clase del 30/06/2026 nos dio ganas de porbar el soonet 5
+## 🤖🤖PROYECTO DESARROLLADO EN CLAUDE - La clase del 30/06/2026 probamos soonet 5
 Cómo funciona:
 Pestaña Vinos: cada vino muestra bodega, etiqueta, cepa, proveedor, precio costo/venta y stock. Botón "Recibir stock" para cuando entra mercadería, y "Entregar a cliente" para cuando le dejás botellas a alguien — esto descuenta del stock del vino automáticamente.
 Pestaña Clientes: cada cliente muestra el total de botellas que tiene acumuladas, desglosado por vino, más el historial completo de entregas.
@@ -98,4 +98,4 @@ El motor de datos que alimenta la lógica de esta aplicación móvil ha sido des
 Puede acceder a la base de datos con los datos de prueba del inventario, la agenda de clientes y el libro de movimientos en el siguiente enlace:
 👉 **[Haga clic aquí para ver las Tablas del Modelo en Google Sheets](https://docs.google.com/spreadsheets/d/193w7r3CKkd6NLFo53c-3g9kQ6pTCOWTG/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true )https://docs.google.com/spreadsheets/d/1Jq_DqK2IgGlvvRaT5-FK4__VNSfHSwQO/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true ; https://docs.google.com/spreadsheets/d/1YHxrgQZTUiK8HsRJQ-B59F1JLgh_liPK/edit?usp=sharing&ouid=113107272262048780939&rtpof=true&sd=true
 
-Con SONNET 5, nos fue mas simplesubimos directamte las tablas y sucedio la magia.
+Con SONNET 5, nos fue mas simple subimos directamte las tablas y sucedio la magia.
