@@ -1,6 +1,6 @@
 # proyecto_diplomatura_vinoble
 
-## Alumnos Creadores: 
+## Alumnos Creadores: Mayra Martin y Santiago Varela
 ## Descrpcion
 app para para automatizar la gestio y control de la produccion, distribucion y venta de vinos
 
